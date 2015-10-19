@@ -140,6 +140,11 @@ class PositionCalculator {
             $before = "";
             if ($pos > 0) {
                 $before = $sql[$pos - 1];
+
+                // if expr_type is column list, we see if it's surrouned by ExpressionType::COLUMN_LIST
+                if($expr_type === ExpressionType::COLUMN_LIST && $sql[$pos] == '(')
+                  $before = ''; 
+
             }
 
             // if we have a quoted string, we every character is allowed after it

@@ -1,9 +1,8 @@
 <?php
-
 /**
- * issue_git10Test.php
+ * ReplaceStatement.php
  *
- * Test case for PHPSQLParser from issue #10 of GitHub.
+ * Builds the REPLACE statement
  *
  * PHP version 5
  *
@@ -39,29 +38,52 @@
  * @version   SVN: $Id$
  * 
  */
-namespace PHPSQLParser\Test\Creator;
 
-use PHPSQLParser\PHPSQLParser;
-use PHPSQLParser\PHPSQLCreator;
+namespace PHPSQLParser\builders;
 
-class Issue_Git10Test extends \PHPUnit_Framework_TestCase {
-	
-	public function testIssueGit10() {
-		$query = "SELECT
-REPLACE( f.web_program,'\n', '' ) AS web_program,
-id AS change_id
-FROM
-file f
-HAVING
-change_id > :change_id";
-		
-		$parser = new PHPSQLParser ();
-		$p = $parser->parse ( $query );
-		$creator = new PHPSQLCreator ();
-		$created = $creator->create ( $p );
-		$expected = getExpectedValue ( dirname ( __FILE__ ), 'issue_git10.sql', false );
-		$this->assertSame ( $expected, $created, 'alias references should work in HAVING clauses' );
-	}
+/**
+ * This class implements the builder for the whole Replace statement. You can overwrite
+ * all functions to achieve another handling.
+ *
+ * @author  André Rothe <andre.rothe@phosco.info>
+ * @license http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
+ *  
+ */
+class ReplaceStatementBuilder implements Builder {
+
+    protected function buildVALUES($parsed) {
+        $builder = new ValuesBuilder();
+        return $builder->build($parsed);
+    }
+
+    protected function buildREPLACE($parsed) {
+        $builder = new ReplaceBuilder();
+        return $builder->build($parsed);
+    }
+
+    protected function buildSELECT($parsed) {
+        $builder = new SelectStatementBuilder();
+        return $builder->build($parsed);
+    }
+    
+    protected function buildSET($parsed) {
+        $builder = new SetBuilder();
+        return $builder->build($parsed);
+    }
+    
+    public function build(array $parsed) {
+        // TODO: are there more than one tables possible (like [REPLACE][1])
+        $sql = $this->buildREPLACE($parsed['REPLACE']);
+        if (isset($parsed['VALUES'])) {
+            $sql .= ' ' . $this->buildVALUES($parsed['VALUES']);
+        }
+        if (isset($parsed['SET'])) {
+            $sql .= ' ' . $this->buildSET($parsed['SET']);
+        }
+        if (isset($parsed['SELECT'])) {
+            $sql .= ' ' . $this->buildSELECT($parsed);
+        }
+        return $sql;
+    }
 }
-
 ?>

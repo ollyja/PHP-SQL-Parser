@@ -1,9 +1,8 @@
 <?php
-
 /**
- * issue_git10Test.php
+ * TruncateStatementBuilder.php
  *
- * Test case for PHPSQLParser from issue #10 of GitHub.
+ * Builds the TRUNCATE statement
  *
  * PHP version 5
  *
@@ -39,29 +38,35 @@
  * @version   SVN: $Id$
  * 
  */
-namespace PHPSQLParser\Test\Creator;
 
-use PHPSQLParser\PHPSQLParser;
-use PHPSQLParser\PHPSQLCreator;
+namespace PHPSQLParser\builders;
 
-class Issue_Git10Test extends \PHPUnit_Framework_TestCase {
-	
-	public function testIssueGit10() {
-		$query = "SELECT
-REPLACE( f.web_program,'\n', '' ) AS web_program,
-id AS change_id
-FROM
-file f
-HAVING
-change_id > :change_id";
-		
-		$parser = new PHPSQLParser ();
-		$p = $parser->parse ( $query );
-		$creator = new PHPSQLCreator ();
-		$created = $creator->create ( $p );
-		$expected = getExpectedValue ( dirname ( __FILE__ ), 'issue_git10.sql', false );
-		$this->assertSame ( $expected, $created, 'alias references should work in HAVING clauses' );
-	}
+/**
+ * This class implements the builder for the whole Truncate statement. You can overwrite
+ * all functions to achieve another handling.
+ *
+ * @author  André Rothe <andre.rothe@phosco.info>
+ * @license http://www.debian.org/misc/bsd.license  BSD License (3 Clause)
+ *  
+ */
+class TruncateStatementBuilder implements Builder {
+
+    protected function buildTRUNCATE($parsed) {
+        $builder = new TruncateBuilder();
+        return $builder->build($parsed);
+    }
+
+    protected function buildFROM($parsed) {
+        $builder = new FromBuilder();
+        return $builder->build($parsed);
+    }
+    
+    public function build(array $parsed) {
+        $sql = $this->buildTRUNCATE($parsed);
+        // $sql .= " " . $this->buildTRUNCATE($parsed) // Uncomment when parser fills in expr_type=table
+        
+        return $sql;
+    }
+
 }
-
 ?>

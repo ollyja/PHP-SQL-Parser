@@ -44,7 +44,6 @@ use PHPSQLParser\PHPSQLCreator;
 use Analog\Analog;
 
 class UnionTest extends \PHPUnit_Framework_TestCase {
-	
     public function testUnion1() {
         $parser = new PHPSQLParser();
 
@@ -67,6 +66,13 @@ class UnionTest extends \PHPUnit_Framework_TestCase {
         $p = $parser->parse($sql, true);
         $expected = getExpectedValue(dirname(__FILE__), 'union2.serialized');
         $this->assertEquals($expected, $p, 'mysql union with order-by');
+    }
+    public function testUnion3() {
+        $sql = "SELECT x FROM ((SELECT y FROM  z  WHERE (y > 2) ) UNION ALL (SELECT a FROM z WHERE (y < 2))) as f ";
+        $parser = new PHPSQLParser();
+        $p = $parser->parse($sql, true);
+        $expected = getExpectedValue(dirname(__FILE__), 'union3.serialized');
+        $this->assertEquals($expected, $p, 'complicated mysql union');
     }
 }
 ?>
